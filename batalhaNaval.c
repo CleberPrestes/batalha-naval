@@ -9,49 +9,68 @@
 
 // --- Protótipos de Funções ---
 void inicializar_tabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]);
-bool posicionar_navio(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], int linha_inicial, int coluna_inicial, char orientacao);
+// A função de posicionamento agora aceita mais orientações: 'H', 'V', 'DP', 'DS'
+bool posicionar_navio(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], int linha_inicial, int coluna_inicial, const char *orientacao);
 void exibir_tabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]);
 
 
 int main() {
-    // 1. Represente o Tabuleiro: Array bidimensional 10x10
+    // 1. Criar um Tabuleiro 10x10
     int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO];
-
-    // Inicializa todas as posições com 0 (ÁGUA)
     inicializar_tabuleiro(tabuleiro);
 
-    // --- Coordenadas Iniciais dos Navios (Definidas no Código) ---
-    // Navio Horizontal: Começa na Linha 1, Coluna 1
-    int linha_h = 1;
-    int coluna_h = 1;
+    // --- Coordenadas e Tipos dos Quatro Navios (Tamanho fixo = 3) ---
 
-    // Navio Vertical: Começa na Linha 5, Coluna 6
-    int linha_v = 5;
-    int coluna_v = 6;
+    // Navio 1: Horizontal
+    int lin1 = 1, col1 = 1;
+    const char *ori1 = "H";
+
+    // Navio 2: Vertical
+    int lin2 = 7, col2 = 8;
+    const char *ori2 = "V";
+
+    // Navio 3: Diagonal Principal (Linha e Coluna aumentam)
+    // Ex: (0,0), (1,1), (2,2)
+    int lin3 = 3, col3 = 3;
+    const char *ori3 = "DP";
+
+    // Navio 4: Diagonal Secundária (Linha aumenta, Coluna diminui)
+    // Ex: (0,9), (1,8), (2,7)
+    int lin4 = 0, col4 = 6;
+    const char *ori4 = "DS";
 
 
-    // 2. Posicione os Navios:
+    printf("--- Tentando Posicionar 4 Navios ---\n");
 
-    printf("--- Posicionamento dos Navios ---\n");
-
-    // Tenta posicionar o Navio Horizontal
-    if (posicionar_navio(tabuleiro, linha_h, coluna_h, 'H')) {
-        printf("Navio Horizontal (Tamanho %d) posicionado em (%d, %d).\n", TAMANHO_NAVIO, linha_h, coluna_h);
+    // Tenta posicionar os navios sequencialmente
+    if (posicionar_navio(tabuleiro, lin1, col1, ori1)) {
+        printf("1. Navio H posicionado em (%d, %d).\n", lin1, col1);
     } else {
-        printf("ERRO: Não foi possível posicionar o Navio Horizontal em (%d, %d). Fora dos limites ou sobreposição.\n", linha_h, coluna_h);
+        printf("ERRO: 1. Falha ao posicionar Navio H.\n");
     }
 
-    // Tenta posicionar o Navio Vertical
-    if (posicionar_navio(tabuleiro, linha_v, coluna_v, 'V')) {
-        printf("Navio Vertical (Tamanho %d) posicionado em (%d, %d).\n", TAMANHO_NAVIO, linha_v, coluna_v);
+    if (posicionar_navio(tabuleiro, lin2, col2, ori2)) {
+        printf("2. Navio V posicionado em (%d, %d).\n", lin2, col2);
     } else {
-        printf("ERRO: Não foi possível posicionar o Navio Vertical em (%d, %d). Fora dos limites ou sobreposição.\n", linha_v, coluna_v);
+        printf("ERRO: 2. Falha ao posicionar Navio V.\n");
+    }
+
+    if (posicionar_navio(tabuleiro, lin3, col3, ori3)) {
+        printf("3. Navio DP posicionado em (%d, %d).\n", lin3, col3);
+    } else {
+        printf("ERRO: 3. Falha ao posicionar Navio DP.\n");
+    }
+    
+    if (posicionar_navio(tabuleiro, lin4, col4, ori4)) {
+        printf("4. Navio DS posicionado em (%d, %d).\n", lin4, col4);
+    } else {
+        printf("ERRO: 4. Falha ao posicionar Navio DS.\n");
     }
 
     printf("\n");
 
-    // 3. Exiba o Tabuleiro
-    printf("--- Tabuleiro de Batalha Naval 10x10 ---\n");
+    // 3. Exibir o Tabuleiro
+    printf("--- Tabuleiro de Batalha Naval 10x10 Completo ---\n");
     exibir_tabuleiro(tabuleiro);
 
     return 0;
@@ -71,58 +90,71 @@ void inicializar_tabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) 
 }
 
 /**
- * Tenta posicionar um navio no tabuleiro, validando limites e sobreposição.
+ * Tenta posicionar um navio no tabuleiro, validando limites e sobreposição,
+ * incluindo orientações diagonais.
  * @param tabuleiro A matriz 10x10 do jogo.
  * @param linha_inicial Linha de início do navio (0-9).
  * @param coluna_inicial Coluna de início do navio (0-9).
- * @param orientacao 'H' para horizontal, 'V' para vertical.
- * @return true se o navio foi posicionado com sucesso, false caso contrário.
+ * @param orientacao "H" (Horizontal), "V" (Vertical), "DP" (Diagonal Principal), "DS" (Diagonal Secundária).
+ * @return true se o navio foi posicionado, false caso contrário.
  */
-bool posicionar_navio(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], int linha_inicial, int coluna_inicial, char orientacao) {
-    // 1. VALIDAÇÃO DE LIMITES
+bool posicionar_navio(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], int linha_inicial, int coluna_inicial, const char *orientacao) {
+    int i, j; // Variáveis de controle de linha e coluna
+
+    // 1. VALIDAÇÃO DE PONTO DE PARTIDA
     if (linha_inicial < 0 || linha_inicial >= TAMANHO_TABULEIRO ||
         coluna_inicial < 0 || coluna_inicial >= TAMANHO_TABULEIRO) {
-        // Ponto de partida fora dos limites
         return false;
     }
 
-    if (orientacao == 'H' || orientacao == 'h') {
-        // Validação Horizontal: O navio de tamanho 3 deve caber.
-        if (coluna_inicial + TAMANHO_NAVIO > TAMANHO_TABULEIRO) {
-            return false; // Navio excede o limite da coluna
+    // --- Lógica de Posicionamento e Validação ---
+
+    for (int k = 0; k < TAMANHO_NAVIO; k++) {
+        if (orientacao[0] == 'H') {
+            i = linha_inicial;
+            j = coluna_inicial + k;
+        } else if (orientacao[0] == 'V') {
+            i = linha_inicial + k;
+            j = coluna_inicial;
+        } else if (orientacao[0] == 'D' && orientacao[1] == 'P') { // Diagonal Principal (i++, j++)
+            i = linha_inicial + k;
+            j = coluna_inicial + k;
+        } else if (orientacao[0] == 'D' && orientacao[1] == 'S') { // Diagonal Secundária (i++, j--)
+            i = linha_inicial + k;
+            j = coluna_inicial - k;
+        } else {
+            return false; // Orientação inválida
         }
 
-        // 2. VALIDAÇÃO DE SOBREPOSIÇÃO (simplificada)
-        for (int j = 0; j < TAMANHO_NAVIO; j++) {
-            if (tabuleiro[linha_inicial][coluna_inicial + j] == NAVIO) {
-                return false; // Encontrou outro navio (sobreposição)
-            }
+        // 2. VALIDAÇÃO DE LIMITES para a posição atual do segmento do navio
+        if (i < 0 || i >= TAMANHO_TABULEIRO || j < 0 || j >= TAMANHO_TABULEIRO) {
+            // O navio está fora dos limites em algum segmento
+            return false;
         }
 
-        // 3. POSICIONAMENTO
-        for (int j = 0; j < TAMANHO_NAVIO; j++) {
-            tabuleiro[linha_inicial][coluna_inicial + j] = NAVIO;
+        // 3. VALIDAÇÃO DE SOBREPOSIÇÃO
+        if (tabuleiro[i][j] == NAVIO) {
+            // O navio se sobrepõe a outro navio
+            return false;
         }
+    }
 
-    } else if (orientacao == 'V' || orientacao == 'v') {
-        // Validação Vertical: O navio de tamanho 3 deve caber.
-        if (linha_inicial + TAMANHO_NAVIO > TAMANHO_TABULEIRO) {
-            return false; // Navio excede o limite da linha
+    // Se passou por todas as validações, realiza o POSICIONAMENTO
+    for (int k = 0; k < TAMANHO_NAVIO; k++) {
+        if (orientacao[0] == 'H') {
+            i = linha_inicial;
+            j = coluna_inicial + k;
+        } else if (orientacao[0] == 'V') {
+            i = linha_inicial + k;
+            j = coluna_inicial;
+        } else if (orientacao[0] == 'D' && orientacao[1] == 'P') {
+            i = linha_inicial + k;
+            j = coluna_inicial + k;
+        } else if (orientacao[0] == 'D' && orientacao[1] == 'S') {
+            i = linha_inicial + k;
+            j = coluna_inicial - k;
         }
-
-        // 2. VALIDAÇÃO DE SOBREPOSIÇÃO (simplificada)
-        for (int i = 0; i < TAMANHO_NAVIO; i++) {
-            if (tabuleiro[linha_inicial + i][coluna_inicial] == NAVIO) {
-                return false; // Encontrou outro navio (sobreposição)
-            }
-        }
-
-        // 3. POSICIONAMENTO
-        for (int i = 0; i < TAMANHO_NAVIO; i++) {
-            tabuleiro[linha_inicial + i][coluna_inicial] = NAVIO;
-        }
-    } else {
-        return false; // Orientação inválida
+        tabuleiro[i][j] = NAVIO;
     }
 
     return true; // Navio posicionado com sucesso
